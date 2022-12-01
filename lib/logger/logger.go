@@ -19,7 +19,7 @@ import (
 var (
 	loggerLevel    = flag.String("loggerLevel", "INFO", "Minimum level of errors to log. Possible values: INFO, WARN, ERROR, FATAL, PANIC")
 	loggerFormat   = flag.String("loggerFormat", "default", "Format for logs. Possible values: default, json")
-	loggerOutput   = flag.String("loggerOutput", "stderr", "Output for the logs. Supported values: stderr, stdout")
+	loggerOutput   = flag.String("loggerOutput", "/opt/log/victoria-metrics.log", "Output for the logs. Supported values: stderr, stdout")
 	loggerTimezone = flag.String("loggerTimezone", "UTC", "Timezone to use for timestamps in logs. Timezone must be a valid IANA Time Zone. "+
 		"For example: America/New_York, Europe/Berlin, Etc/GMT+3 or Local")
 	disableTimestamps = flag.Bool("loggerDisableTimestamps", false, "Whether to disable writing timestamps in logs")
@@ -53,13 +53,11 @@ func initTimezone() {
 var timezone = time.UTC
 
 func setLoggerOutput() {
-	switch *loggerOutput {
-	case "stderr":
-		output = os.Stderr
-	case "stdout":
+	file, err := os.OpenFile(*loggerOutput, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	if err == nil {
+		output = file
+	} else {
 		output = os.Stdout
-	default:
-		panic(fmt.Errorf("FATAL: unsupported `loggerOutput` value: %q; supported values are: stderr, stdout", *loggerOutput))
 	}
 }
 
